@@ -1,0 +1,15 @@
+group_name: liver
+force_recalculate: False
+cleaning:
+    bounding_boxes: 1
+    connected_areas_per_label: 1
+measures:
+    - id: 1
+      name: liver
+      measures:
+          - function: volume
+          - function: surface_area
+          - function: color_average
+          - function: color_std
+          - function: eccentricity_meridional
+          - function: eccentricity_equatorial

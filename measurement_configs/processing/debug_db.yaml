@@ -1,0 +1,4 @@
+# @package _group_
+db: /home/ws/tb0536/projects/measuring-repo/artifacts/debug.json
+#readonly: False
+n_jobs: 3

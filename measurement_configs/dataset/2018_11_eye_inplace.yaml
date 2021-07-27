@@ -1,0 +1,5 @@
+# @package _group_
+directories: '/mnt/LSDF/projects/code-vita/Medaka/2018_11/Medaka_50*/' 
+volume_name: 'scaled_0.5_8bit_slices.tif'
+mask_name: 'segmented_scaled_0.5_8bit_slices.tif'
+id_regexp: '/Medaka_(.*?)_.*/'

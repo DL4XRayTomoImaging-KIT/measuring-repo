@@ -1,0 +1,13 @@
+dataset:
+measurement:
+processing:
+
+hydra:
+    run:
+        # Output directory for normal runs
+        dir: /mnt/data/machine-learning/logs/medaka-measurement/${now:%Y-%m-%d_%H-%M-%S}
+    sweep:
+       # Output directory for sweep runs
+       dir: /mnt/data/machine-learning/logs/medaka-measurement/${now:%Y-%m-%d_%H-%M-%S}
+       # Output sub directory for sweep runs.
+       subdir: ${hydra.job.num}_${hydra.job.override_dirname}
