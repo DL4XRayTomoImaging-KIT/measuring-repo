@@ -2,7 +2,8 @@
 group_name: eyes
 force_recalculate: True
 cleaning:
-    bounding_boxes: 1
+    bounding_boxes: 2
+    bbox_cleaning_type: 1d
     connected_areas_per_label:
         - {id: 1, connected_regions: 2}
         - {id: 3, connected_regions: 2}

@@ -27,7 +27,6 @@ def recurrent_cleaner(s):
 
     raise Exception(f'Unexpected type for serialisation: {type(s)} for value {s}')
 
-
 def organ_measure(mf):
     def wrapped_mf(markup, volume, separator=None):
         if separator is None:

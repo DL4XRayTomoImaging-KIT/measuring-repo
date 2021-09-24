@@ -67,20 +67,21 @@ class DoubleStepCleaner:
         if self.bb is None:
             return (0, markup.shape[0]-1), (0, markup.shape[1]-1), (0, markup.shape[2]-1)
         
-        if self.bb == 0:
-            ax_0 = markup.sum((1, 2)) > 0
-            ax_1 = markup.sum((0, 2)) > 0
-            ax_2 = markup.sum((0, 1)) > 0
-        else:
-            ax_0 = select_top_k_connected_areas(markup.sum((1, 2)) > 0, self.bb)
-            ax_1 = select_top_k_connected_areas(markup.sum((0, 2)) > 0, self.bb)
-            ax_2 = select_top_k_connected_areas(markup.sum((0, 1)) > 0, self.bb)
+        ax_0 = markup.sum((1, 2)) > 0
+        ax_1 = markup.sum((0, 2)) > 0
+        ax_2 = markup.sum((0, 1)) > 0
 
-        coords_0 = np.where(ax_0)[0]
-        coords_1 = np.where(ax_1)[0]
-        coords_2 = np.where(ax_2)[0]
+        axes = [ax_0, ax_1, ax_2]
+
+        if self.bb > 0:
+            axes = [select_top_k_connected_areas(ax, self.bb) for ax in axes]
         
-        return (coords_0[0], coords_0[-1]), (coords_1[0], coords_1[-1]), (coords_2[0], coords_2[-1])
+        axes = [np.where(ax)[0] for ax in axes]
+        
+        if min([len(ax) for ax in axes]) == 0:
+            raise CleanerError('bounding box cleaner', 'bounding box is empty')
+        
+        return [(ax[0], ax[-1]) for ax in axes]
 
     def _bounding_box_clean(self, markup):
         if self.bbt == '1d':
@@ -112,11 +113,13 @@ class DoubleStepCleaner:
         if area_iterator is None:
             raise Exception(f'connected_areas_per_label is of unexpected type: {type(self.ca)}')
 
-        for area_id, leave_regions in tqdm(area_iterator.items(), leave=False, desc='cleaning regions'):
+        for area_id, leave_regions in area_iterator.items():
             submarkup = (markup == area_id)
             raw_vol = submarkup.sum()
             if raw_vol < 1000:
-                raise CleanerError('outlier cleaner', 'raw volume too small', area_id=area_id, raw_vol=raw_vol)
+                markup[markup == area_id] = 0
+                continue
+                # raise CleanerError('outlier cleaner', 'raw volume too small', area_id=area_id, raw_vol=raw_vol)
             connected_regions = label(submarkup)
             region_id, region_size = np.unique(connected_regions, return_counts=True)
             regions_order = (np.argsort(region_size[1:]) + 1)[::-1] # ordering without zero
@@ -127,7 +130,9 @@ class DoubleStepCleaner:
 
             clean_vol = region_size[regions_order[:leave_regions+1]].sum()
             if clean_vol < 1000:
-                raise CleanerError('outlier cleaner', 'processed volume too small', area_id=area_id, clean_vol=clean_vol)
+                markup[markup == area_id] = 0
+                continue
+                # raise CleanerError('outlier cleaner', 'processed volume too small', area_id=area_id, clean_vol=clean_vol)
 
             markup[np.isin(connected_regions, regions_order[leave_regions:])] = 0
 

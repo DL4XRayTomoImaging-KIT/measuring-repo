@@ -13,7 +13,7 @@ class CleanerError(MeasureError):
 
 class MeasurementError(MeasureError):
     def __repr__(self):
-        return f'leaning error at {self.location}: {self.message} ({self.meta})'
+        return f'Measuring error at {self.location}: {self.message} ({self.meta})'
 
 class FileError(MeasureError):
     def __init__(self, message, **meta):
@@ -25,3 +25,7 @@ class FileError(MeasureError):
     
     def _as_dict(self):
         return {'meta': self.meta, 'message': self.message, 'type': self.__class__.__name__}
+
+class SeparationError(MeasureError):
+    def __repr__(self):
+        return f'Separation error at {self.location}: {self.message} ({self.meta})'

@@ -1,3 +1,0 @@
-mask_dir: '/mnt/HD-LSDF/Medaka/segmentations/eye_segmentation_data/medakas/2018_11_downscaled_eye_uint/' 
-volumes_dir: '/mnt/HD-LSDF/Medaka/segmentations/eye_segmentation_data/medakas/2018_11_downscaled/'
-meta_file: 'artifacts/2018_11.csv'

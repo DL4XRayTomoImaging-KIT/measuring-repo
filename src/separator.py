@@ -2,6 +2,7 @@ from scipy.spatial import KDTree
 from sklearn.mixture import GaussianMixture
 import numpy as np
 from skimage.measure import label
+from src.errors import SeparationError
 
 
 def get_centers_probabilistic(markup, count):
@@ -29,8 +30,11 @@ class Separator:
         elif function == 'stat':
             cf = get_centers_statistical
         else:
-            raise Exception(f'Unknown type of the centering function {function}')
-        self.centers = cf(markup, count)
+            raise SeparationError('Separator', 'Unknown type of the centering function', function=function)
+        try:
+            self.centers = cf(markup, count)
+        except Exception as e:
+            raise SeparationError('Separator', 'Failed separation function', meta=str(e))
         self.tree = KDTree(self.centers)
 
     def __len__(self):

@@ -1,7 +1,7 @@
 from src import measures
 from src.cleaner import DoubleStepCleaner
 from src.separator import Separator
-from src.errors import CleanerError, MeasureError, FileError, MeasurementError
+from src.errors import CleanerError, MeasureError, FileError, MeasurementError, SeparationError
 
 from tinydb import TinyDB, Query
 from copy import deepcopy
@@ -19,18 +19,24 @@ from glob import glob
 import re
 
 from joblib import delayed, Parallel
+import warnings as wrngngs
 
 
 is_forced = lambda c: ('force' in c.keys()) and (c['force'] == True)
 
 class Measurer:
-    def __init__(self, config, db_addr=None, write_db=True):
+    def __init__(self, config, db_addr=None, write_db=True, log_file=None):
         self.cleaner = DoubleStepCleaner(**config['cleaning'])
         self.measurement_config = config['measures']
         self.centering_config = config['centering'] if 'centering' in config.keys() else []
         self.force = is_forced(config)
         self.group_name = config['group_name']
         self.write_db = write_db
+
+        self.log_file = log_file
+        if self.log_file is not None:
+            with open(self.log_file, 'w') as f:
+                pass
 
         if db_addr is not None:
             self.db = db_addr
@@ -41,7 +47,7 @@ class Measurer:
     def _prepare_update_record(self, mc, om):
         if not (self.group_name in om.keys()):
             om[self.group_name] = dict()
-
+        # breakpoint()
         for label in mc:
             if not(label['name'] in om[self.group_name].keys()):
                 om[self.group_name][label['name']] = dict()
@@ -68,6 +74,7 @@ class Measurer:
         # possible duplicates.
         cu = [] # centers used
         mc = [] # current measurement config
+        # breakpoint()
         for label in self.measurement_config:
             cc = label['center'] if ('center' in label.keys()) else None
             if not (label['name'] in old_measurements.keys()): # everything for this label should be measured
@@ -80,18 +87,18 @@ class Measurer:
             else:
                 # selecting specific measures
                 com = old_measurements[label['name']]
-                nl = []
+                nl = deepcopy(label)
+                nl['measures'] = []
                 for measure in label['measures']:
                     if not (measure['function'] in com.keys()):
                         # measure is absent
-                        nl.append(measure)
-                        cu.append(cc)
+                        nl['measures'].append(measure)
                     elif is_forced(measure):
                         # measure is forced
-                        nl.append(measure)
-                        cu.append(cc)
-                if nl:
+                        nl['measures'].append(measure)
+                if nl['measures']:
                     mc.append(nl)
+                    cu.append(cc)
 
         cu = set(cu) - {None}
         cc = [c for c in self.centering_config if (c['name'] in cu)]
@@ -131,7 +138,12 @@ class Measurer:
                 mf = getattr(measures, measure['function'])
                 cc = centers[label['center']] if ('center' in label.keys()) else None
                 try:
-                    om[self.group_name][label['name']][measure['function']] = mf(label_mask, volume, cc)
+                    with wrngngs.catch_warnings(record=True) as w:
+                        om[self.group_name][label['name']][measure['function']] = mf(label_mask, volume, cc)
+                    if len(w) > 0:
+                        # breakpoint()
+                        warnings.append({'location': w[0].filename + '::' + str(w[0].lineno), 'meta': None, 'message': str(w[0].message), 'type': str(w[0].category)})
+                        # warnings += [{'location': 'out', 'meta': None, 'message': str(i), 'type': 'warning'} for i in w]
                 except MeasurementError as err:
                     warnings.append(err._as_dict())
         return om, warnings
@@ -150,10 +162,16 @@ class Measurer:
                 log['warnings'] = warnings
             else:
                 log['status'] = 'success'
-        except (CleanerError, FileError) as err:
+        except (CleanerError, FileError, SeparationError) as err:
             log['status'] = 'error'
             log['error'] = err._as_dict()
-        return log
+        
+        if self.log_file is not None:
+            with open(self.log_file, 'r+') as f:
+                previous_logs = yaml.safe_load(f) or []
+                previous_logs.append(log)
+                f.seek(0)
+                yaml.safe_dump(previous_logs, f)
 
     def _from_files(self, mask_dir, volumes_dir, meta_file, processing_range=None, multiprocessing=None):
         if processing_range is None:
@@ -187,7 +205,7 @@ def measure(cfg : DictConfig) -> None:
 
     readonly = pc.get('readonly', False)
     db = pc.get('db', None)
-    measurer = Measurer(mc, db_addr=db, write_db=(not readonly))
+    measurer = Measurer(mc, db_addr=db, write_db=(not readonly), log_file='log.yaml')
     
     processing_triplets = []
     for directory in glob(dc['directories']):
@@ -196,13 +214,9 @@ def measure(cfg : DictConfig) -> None:
         sample_id = {'id': re.findall(dc['id_regexp'], directory)[0]}
 
         processing_triplets.append((mask_addr, volume_addr, sample_id))
-    measurer._load_n_process(*processing_triplets[0])
     
-    log = Parallel(n_jobs=pc['n_jobs'], verbose=20)(delayed(measurer._load_n_process)(*i) for i in processing_triplets)
-    # log = [measurer._load_n_process(*i) for i in processing_triplets]
-
-    with open('log.yaml', 'w') as f:
-        yaml.safe_dump(log, f)
+    Parallel(n_jobs=pc['n_jobs'], verbose=20)(delayed(measurer._load_n_process)(*i) for i in processing_triplets)
+    # [measurer._load_n_process(*i) for i in tqdm(processing_triplets)]
 
 
 if __name__ == "__main__":
