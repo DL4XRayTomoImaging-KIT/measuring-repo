@@ -4,6 +4,7 @@ from src.separator import Separator
 from src.errors import CleanerError, MeasureError, FileError, MeasurementError, SeparationError
 
 from tinydb import TinyDB, Query
+from pymongo import MongoClient
 from copy import deepcopy
 import pandas as pd
 import os
@@ -20,9 +21,90 @@ import re
 
 from joblib import delayed, Parallel
 import warnings as wrngngs
+from collections import defaultdict
+
 
 
 is_forced = lambda c: ('force' in c.keys()) and (c['force'] == True)
+
+def dict_to_planar(d):
+    n_d = {}
+    for k, v in d.items():
+        if isinstance(v, dict):
+            v = dict_to_planar(v)
+            for sk, sv in v.items():
+                n_d['.'.join([k, sk])] = sv
+        else:
+            n_d[k] = v
+    return n_d
+
+class MongoDBInterface:
+    def __init__(self, address, database):
+        self.db = MongoClient(address)[database].measurements
+    
+    def get_sample_record(self, id):
+        return self.db.find_one({'id': id}, projection={'_id': False})
+    
+    def update_sample_record(self, record):
+        self.db.find_one_and_update({'id': record['id']},
+                                    {'$set': dict_to_planar(record)},
+                                    upsert=True)
+    
+    def as_table(self, fields, request=None):
+        if isinstance(fields, str):
+            fields = [fields]
+        
+        collection = self.db.find(request, projection={**{f_n: True for f_n in fields}, **{'_id': False}})
+        collection = [dict_to_planar(document) for document in collection] # flattened dicts in collection
+        collection = {k: [d[k] for d in collection] for k in collection[0].keys()} # collection as dict of lists instead of list of dicts
+        return collection
+    
+class TinyDBInterface:
+    def __init__(self, address):
+        self.db = address
+
+    def get_sample_record(self, id):
+        with TinyDB(self.db) as db:
+            record = db.search(Query().id == id)
+        if record:
+            return record[0]
+        else:
+            return None
+    
+    def update_sample_record(self, record):
+        with TinyDB(self.db) as db:
+            db.upsert(record, Query().id == record['id'])
+    
+    def as_table(self, fields, request=None):
+        if isinstance(fields, str):
+            fields = [fields]
+        with TinyDB(self.db) as db:
+            if request is not None:
+                selection = db.search(Query().fragment(request))
+            else:
+                selection = db.all()
+            
+        result = defaultdict(list)
+        for record in selection:
+            for fieldname in fields:
+                subfields = fieldname.split('.')
+                curview = record
+                for subfieldname in subfields:
+                    if subfieldname in curview.keys():
+                        curview = curview[subfieldname]
+                    else:
+                        curview = None
+                        break
+                result[fieldname].append(curview)
+        return result
+
+def get_database_interface(address):
+    if ('@' in address): # this is MongoDB
+        database, address = address.split('@')
+        return  MongoDBInterface(address, database)
+    else: # this is TinyDB
+        return TinyDBInterface(address)
+
 
 class Measurer:
     def __init__(self, config, db_addr=None, write_db=True, log_file=None):
@@ -31,15 +113,15 @@ class Measurer:
         self.centering_config = config['centering'] if 'centering' in config.keys() else []
         self.force = is_forced(config)
         self.group_name = config['group_name']
-        self.write_db = write_db
 
         self.log_file = log_file
         if self.log_file is not None:
             with open(self.log_file, 'w') as f:
                 pass
-
+        
+        self.write_db = write_db
         if db_addr is not None:
-            self.db = db_addr
+            self.db = get_database_interface(db_addr)
         else:
             self.db = None
             self.write_db = False
@@ -47,7 +129,6 @@ class Measurer:
     def _prepare_update_record(self, mc, om):
         if not (self.group_name in om.keys()):
             om[self.group_name] = dict()
-        # breakpoint()
         for label in mc:
             if not(label['name'] in om[self.group_name].keys()):
                 om[self.group_name][label['name']] = dict()
@@ -58,11 +139,8 @@ class Measurer:
         if self.force or (self.db is None): # check if everything is forced to be processed
             return self.measurement_config, self.centering_config, deepcopy(meta)
 
-        with TinyDB(self.db) as db:
-            record = db.search(Query().id == meta['id'])
-        if record: # check if there is record for the current fish in db
-            record = record[0]
-        else:
+        record = self.db.get_sample_record(meta['id'])
+        if record is None: # there is no such record appaerntly
             return self.measurement_config, self.centering_config, deepcopy(meta)
 
         if self.group_name in record.keys(): # check if this organ group was measured already
@@ -155,8 +233,7 @@ class Measurer:
             measured, warnings = self._process_one_volume(mask, volume, one_fish)
 
             if self.write_db:
-                with TinyDB(self.db) as db:
-                    db.upsert(measured, Query().id == measured['id'])
+                self.db.update_sample_record(measured)
             if warnings:
                 log['status'] = 'warnings'
                 log['warnings'] = warnings
@@ -173,29 +250,32 @@ class Measurer:
                 f.seek(0)
                 yaml.safe_dump(previous_logs, f)
 
-    def _from_files(self, mask_dir, volumes_dir, meta_file, processing_range=None, multiprocessing=None):
-        if processing_range is None:
-            processing_range = slice(None)
+    # def _from_files(self, mask_dir, volumes_dir, meta_file, processing_range=None, multiprocessing=None):
+    #     if processing_range is None:
+    #         processing_range = slice(None)
 
-        meta_df = pd.read_csv(meta_file).iloc[processing_range]
-        results = []
-        internal_errors = []
-        external_errors = []
+    #     meta_df = pd.read_csv(meta_file).iloc[processing_range]
+    #     results = []
+    #     internal_errors = []
+    #     external_errors = []
 
-        if multiprocessing is None:
-            for i, one_fish in tqdm(meta_df.iterrows(), desc='processing volumes', total=len(meta_df)):
-                result, status = self._load_n_process(mask_dir, volumes_dir, one_fish)
-                if status == 2:
-                    print(status)
-                    raise Exception('Halting computation!')
-                results_processing(result, status)
-        else:
-            res_pairs = Parallel(n_jobs=multiprocessing, verbose=20)(delayed(self._load_n_process)(mask_dir, volumes_dir, one_fish) for i, one_fish in meta_df.iterrows())
-            for result, status in res_pairs:
-                results_processing(result, status)
+    #     if multiprocessing is None:
+    #         for i, one_fish in tqdm(meta_df.iterrows(), desc='processing volumes', total=len(meta_df)):
+    #             result, status = self._load_n_process(mask_dir, volumes_dir, one_fish)
+    #             if status == 2:
+    #                 print(status)
+    #                 raise Exception('Halting computation!')
+    #             results_processing(result, status)
+    #     else:
+    #         res_pairs = Parallel(n_jobs=multiprocessing, verbose=20)(delayed(self._load_n_process)(mask_dir, volumes_dir, one_fish) for i, one_fish in meta_df.iterrows())
+    #         for result, status in res_pairs:
+    #             results_processing(result, status)
 
-        return results, (internal_errors, external_errors)
+    #     return results, (internal_errors, external_errors)
 
+
+def measure_file(measurer_params, triplet):
+    Measurer(**measurer_params)._load_n_process(*triplet)
 
 @hydra.main(config_path='measurement_configs', config_name="config")
 def measure(cfg : DictConfig) -> None:
@@ -205,7 +285,8 @@ def measure(cfg : DictConfig) -> None:
 
     readonly = pc.get('readonly', False)
     db = pc.get('db', None)
-    measurer = Measurer(mc, db_addr=db, write_db=(not readonly), log_file='log.yaml')
+    measurer_params = {'config': mc, 'db_addr': db, 'write_db': (not readonly), 'log_file': 'log.yaml'}
+    # measurer = Measurer(mc, db_addr=db, write_db=(not readonly), log_file='log.yaml')
     
     processing_triplets = []
     for directory in glob(dc['directories']):
@@ -215,7 +296,7 @@ def measure(cfg : DictConfig) -> None:
 
         processing_triplets.append((mask_addr, volume_addr, sample_id))
     
-    Parallel(n_jobs=pc['n_jobs'], verbose=20)(delayed(measurer._load_n_process)(*i) for i in processing_triplets)
+    Parallel(n_jobs=pc['n_jobs'], verbose=20)(delayed(measure_file)(measurer_params, triplet) for triplet in processing_triplets)
     # [measurer._load_n_process(*i) for i in tqdm(processing_triplets)]
 
 
