@@ -1,0 +1,4 @@
+# @package _group_
+db: 'medaka@ips-zharov-2.ips.kit.edu:1548'
+#readonly: False
+n_jobs: 3
