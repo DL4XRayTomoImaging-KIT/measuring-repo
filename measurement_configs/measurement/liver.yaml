@@ -2,6 +2,7 @@ group_name: liver
 force_recalculate: False
 cleaning:
     bounding_boxes: 1
+    bbox_cleaning_type: 1d
     connected_areas_per_label: 1
 measures:
     - id: 1
