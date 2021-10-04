@@ -56,7 +56,7 @@ class MongoDBInterface:
         
         collection = self.db.find(request, projection={**{f_n: True for f_n in fields}, **{'_id': False}})
         collection = [dict_to_planar(document) for document in collection] # flattened dicts in collection
-        collection = {k: [d[k] for d in collection] for k in collection[0].keys()} # collection as dict of lists instead of list of dicts
+        # collection = {k: [d[k] for d in collection] for k in collection[0].keys()} # collection as dict of lists instead of list of dicts
         return collection
     
 class TinyDBInterface:
