@@ -30,15 +30,18 @@ def recurrent_cleaner(s):
 def organ_measure(mf):
     def wrapped_mf(markup, volume, separator=None):
         if separator is None:
-            results =  [mf(markup, volume)]
+            markup_ids = [1]
         else:
-            results = []
-            separated_markup = separator(markup)
-            try:
-                for i in range(len(separator)):
-                    results.append(mf(separated_markup == i+1, volume))
-            except Exception as e:
-                raise MeasurementError(mf.__name__, str(e)) # no meta up to now, huh?
+            markup = separator(markup)
+            markup_ids = [i+1 for i in range(len(separator))]
+
+        results = []
+        try:
+            for i in markup_ids:
+                results.append(mf(markup == i, volume))
+        except Exception as e:
+            raise MeasurementError(mf.__name__, str(e)) # no meta up to now, huh?
+            
         return recurrent_cleaner(results)
     return wrapped_mf
 
