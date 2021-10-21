@@ -1,0 +1,96 @@
+# @package _group_
+group_name: brain
+force_recalculate: True
+cleaning:
+    bounding_boxes: 2
+    bbox_cleaning_type: 1d
+    connected_areas_per_label:
+        - {id: 1, connected_regions: 1}
+        - {id: 2, connected_regions: 2}
+        - {id: 3, connected_regions: 1}
+        - {id: 4, connected_regions: 1}
+        - {id: 5, connected_regions: 1}
+        - {id: 6, connected_regions: 1}
+        - {id: 7, connected_regions: 1}
+        - {id: 8, connected_regions: 1}
+        - {id: 9, connected_regions: 1}
+centering:
+    - label_id: 2
+      function: proba
+      name: optical_tectum
+      count: 2
+measures:
+    - id: 1
+      name: optical_nerves
+      measures:
+          - function: volume
+          - function: surface_area
+          - function: color_average
+          - function: color_std
+          - function: eccentricity_meridional
+    - id: 2
+      name: optical_tectum
+      center: optical_tectum
+      measures:
+          - function: volume
+          - function: surface_area
+          - function: color_average
+          - function: color_std
+          - function: distance_between_centers
+    - id: 3
+      name: forebrain
+      measures:
+          - function: volume
+          - function: surface_area
+          - function: color_average
+          - function: color_std
+          - function: eccentricity_meridional
+    - id: 4
+      name: midbrain 
+      measures:
+          - function: volume
+          - function: surface_area
+          - function: color_average
+          - function: color_std
+          - function: eccentricity_meridional
+    - id: 5
+      name: hindbrain
+      measures:
+          - function: volume
+          - function: surface_area
+          - function: color_average
+          - function: color_std
+          - function: eccentricity_meridional
+    - id: 6
+      name: cerebellum
+      measures:
+          - function: volume
+          - function: surface_area
+          - function: color_average
+          - function: color_std
+          - function: eccentricity_meridional
+    - id: 7
+      name: epyphysis
+      measures:
+          - function: volume
+          - function: surface_area
+          - function: color_average
+          - function: color_std
+          - function: eccentricity_meridional    
+            
+    - id: 8
+      name: hypophysis
+      measures:
+          - function: volume
+          - function: surface_area
+          - function: color_average
+          - function: color_std
+          - function: eccentricity_meridional
+    - id: 9
+      name: toru_longuthing
+      measures:
+          - function: volume
+          - function: surface_area
+          - function: color_average
+          - function: color_std
+          - function: eccentricity_meridional    
