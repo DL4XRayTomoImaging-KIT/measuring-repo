@@ -92,11 +92,9 @@ measures:
           - function: color_average
           - function: color_std
     - id: 9
-      name: toru_longuthing
+      name: torus_longuthing
       measures:
           - function: volume
           - function: surface_area
           - function: color_average
           - function: color_std
-          - function: eccentricity_meridional
-          - function: eccentricity_equatorial 
