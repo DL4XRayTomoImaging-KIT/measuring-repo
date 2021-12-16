@@ -14,7 +14,8 @@ def select_top_k_connected_areas(markup, k):
     return np.isin(connected_regions, regions_order[:k])
 
 
-roi_to_slices = lambda roi: tuple([slice(*i) for i in roi])
+#roi_to_slices = lambda roi: tuple([slice(*i) for i in roi])
+roi_to_slices = lambda roi: tuple([slice(i[0], i[1]+1) for i in roi])
 
 class DoubleStepCleaner:
     def __init__(self, bounding_boxes=1, connected_areas_per_label=1, minimal_box_side=50, bbox_cleaning_type='2d'):
@@ -143,4 +144,4 @@ class DoubleStepCleaner:
         clean_markup = self._iterative_markup_clean(deepcopy(markup[roi_to_slices(roi)]))
         roi = self._bounding_box_clean(markup)
 
-        return clean_markup, roi_to_slices(roi)
+        return clean_markup, roi_to_slices(roi), roi
