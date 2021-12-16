@@ -1,0 +1,47 @@
+# @package _group_
+group_name: eyes
+force_recalculate: True
+cleaning:
+    bounding_boxes: 2
+    bbox_cleaning_type: 1d
+    connected_areas_per_label:
+        - {id: 1, connected_regions: 2}
+        - {id: 3, connected_regions: 2}
+        - {id: 4, connected_regions: 0.01}
+        - {id: 5, connected_regions: 2}
+        - {id: 6, connected_regions: 2}
+centering:
+    - label_id: 3
+      function: proba
+      name: lens
+      count: 2
+measures:
+    - id: 1
+      name: iris
+      center: lens
+      measures:
+          - function: volume
+          - function: bbox
+    - id: 3
+      name: lens
+      center: lens
+      measures:
+          - function: volume
+          - function: bbox
+    - id: 4
+      name: muscles 
+      center: lens
+      measures:
+          - function: volume
+          - function: bbox
+    - id: 5
+      name: nerve 
+      measures:
+          - function: volume
+          - function: bbox
+    - id: 6
+      name: retina
+      center: lens
+      measures:
+          - function: volume
+          - function: bbox

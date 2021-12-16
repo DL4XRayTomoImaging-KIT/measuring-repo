@@ -1,0 +1,15 @@
+# @package _group_
+db: /Users/aleksejersov/projects/measuring-repo/artifacts/vis_db.json
+gallery:
+    path: /Users/aleksejersov/projects/measuring-repo/gallery/data/
+    keep_every_slice: 5
+    crop_to_bbox: True
+    scale_small: 1.0
+    scale_large: 0.5
+    blend_alpha: 0.5
+    save_data:
+        volume: False
+        label: False
+        overlay: True
+#readonly: False
+n_jobs: 3

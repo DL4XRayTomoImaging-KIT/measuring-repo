@@ -1,8 +1,10 @@
 from src import measures
 from src.cleaner import DoubleStepCleaner
 from src.separator import Separator
+from src.gallery import *
 from src.errors import CleanerError, MeasureError, FileError, MeasurementError, SeparationError
 
+import numpy as np
 from tinydb import TinyDB, Query
 from pymongo import MongoClient
 from copy import deepcopy
@@ -107,12 +109,13 @@ def get_database_interface(address):
 
 
 class Measurer:
-    def __init__(self, config, db_addr=None, write_db=True, log_file=None):
+    def __init__(self, config, db_addr=None, write_db=True, log_file=None, gallery=None):
         self.cleaner = DoubleStepCleaner(**config['cleaning'])
         self.measurement_config = config['measures']
         self.centering_config = config['centering'] if 'centering' in config.keys() else []
         self.force = is_forced(config)
         self.group_name = config['group_name']
+        self.gallery = gallery
 
         self.log_file = log_file
         if self.log_file is not None:
@@ -197,33 +200,53 @@ class Measurer:
     def _process_one_volume(self, mask, volume, meta):
         mc, cc, om = self._filter_configs(meta) # measurement config, centering config, old measurements (already was in database)
         warnings = []
+        sample_id = meta['id']
 
         if not mc:
             return om, warnings
 
         om = self._prepare_update_record(mc, om)
         
-        
-        mask, roi = self.cleaner(mask)
-        volume = volume[roi]
+        mask, slices, bbox = self.cleaner(mask)
+        volume = volume[slices]
+
+        group_bbox = np.array(bbox).astype(int).tolist()
+        om['group_bbox'] = group_bbox
+
 
         centers = {}
         for centering in cc:
             centers[centering['name']] = Separator((mask == centering['label_id']), centering['function'], centering['count'])
         for label in mc:
             label_mask = (mask == label['id'])
+
             for measure in label['measures']:
                 mf = getattr(measures, measure['function'])
                 cc = centers[label['center']] if ('center' in label.keys()) else None
                 try:
                     with wrngngs.catch_warnings(record=True) as w:
                         om[self.group_name][label['name']][measure['function']] = mf(label_mask, volume, cc)
+
                     if len(w) > 0:
                         # breakpoint()
                         warnings.append({'location': w[0].filename + '::' + str(w[0].lineno), 'meta': None, 'message': str(w[0].message), 'type': str(w[0].category)})
                         # warnings += [{'location': 'out', 'meta': None, 'message': str(i), 'type': 'warning'} for i in w]
                 except MeasurementError as err:
                     warnings.append(err._as_dict())
+
+        if self.gallery:
+            gallery_params = {
+                'gallery_path': self.gallery.path,
+                'keep_every_slice': self.gallery.keep_every_slice, 
+                'sample_id': sample_id, 
+                'slices_range': group_bbox,
+                'scale_small': self.gallery.scale_small,
+                'scale_large': self.gallery.scale_large,
+                'blend_alpha': self.gallery.blend_alpha
+            }
+            
+            make_gallery(volume, mask, gallery_params)
+
         return om, warnings
 
     def _load_n_process(self, mask_addr, volume_addr, one_fish):
@@ -285,8 +308,10 @@ def measure(cfg : DictConfig) -> None:
 
     readonly = pc.get('readonly', False)
     db = pc.get('db', None)
-    measurer_params = {'config': mc, 'db_addr': db, 'write_db': (not readonly), 'log_file': 'log.yaml'}
-    # measurer = Measurer(mc, db_addr=db, write_db=(not readonly), log_file='log.yaml')
+    gal = pc.get('gallery', None)
+
+    #measurer_params = {'config': mc, 'db_addr': db, 'write_db': (not readonly), 'log_file': 'log.yaml', 'gallery_params': gal}
+    measurer = Measurer(mc, db_addr=db, write_db=(not readonly), log_file='log.yaml', gallery = gal)
     
     processing_triplets = []
     for directory in glob(dc['directories']):
@@ -296,8 +321,13 @@ def measure(cfg : DictConfig) -> None:
 
         processing_triplets.append((mask_addr, volume_addr, sample_id))
     
-    Parallel(n_jobs=pc['n_jobs'], verbose=20)(delayed(measure_file)(measurer_params, triplet) for triplet in processing_triplets)
-    # [measurer._load_n_process(*i) for i in tqdm(processing_triplets)]
+    #Parallel(n_jobs=pc['n_jobs'], verbose=20)(delayed(measure_file)(measurer_params, triplet) for triplet in processing_triplets)
+    [measurer._load_n_process(*i) for i in tqdm(processing_triplets)]
+
+    if measurer.gallery:
+        print('Building gallery HTML')
+        # TODO
+
 
 
 if __name__ == "__main__":

@@ -1,0 +1,5 @@
+# @package _group_
+directories: '/Users/aleksejersov/Documents/data/medaka/data/Medaka_*_*/' 
+volume_name: 'vol.tif'
+mask_name: 'seg.tif'
+id_regexp: '/Medaka_(.*?)_.*/'
