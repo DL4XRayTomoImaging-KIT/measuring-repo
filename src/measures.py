@@ -5,6 +5,7 @@ from skimage.measure import label
 from .separator import get_centers_probabilistic, get_centers_statistical
 from itertools import combinations
 from .errors import MeasurementError
+from .cleaner import select_top_k_connected_areas
 
 def recurrent_cleaner(s):
     if isinstance(s, list):
@@ -78,6 +79,27 @@ def color_average(markup, volume):
 def color_std(markup, volume):
     """Calculates variance of values inside segmented organ"""
     return volume[markup].std()
+
+@organ_measure
+def bbox(markup, volume):
+    #if self.bb is None:
+    #return (0, markup.shape[0]-1), (0, markup.shape[1]-1), (0, markup.shape[2]-1)
+    
+    ax_0 = markup.sum((1, 2)) > 0
+    ax_1 = markup.sum((0, 2)) > 0
+    ax_2 = markup.sum((0, 1)) > 0
+
+    axes = [ax_0, ax_1, ax_2]
+
+    #if self.bb > 0:
+    axes = [select_top_k_connected_areas(ax, 2) for ax in axes]
+    
+    axes = [np.where(ax)[0] for ax in axes]
+    
+    if min([len(ax) for ax in axes]) == 0:
+        raise MeasurementError('bounding box measure', 'bounding box is empty')
+    
+    return [(ax[0], ax[-1]) for ax in axes]
 
 @organ_measure
 @axial_apply
