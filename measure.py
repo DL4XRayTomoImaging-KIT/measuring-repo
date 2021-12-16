@@ -320,6 +320,9 @@ def measure(cfg : DictConfig) -> None:
         sample_id = {'id': re.findall(dc['id_regexp'], directory)[0]}
 
         processing_triplets.append((mask_addr, volume_addr, sample_id))
+
+    processing_triplets = processing_triplets[0:1]
+    print(f'Measuring {len(processing_triplets)} datasets')
     
     #Parallel(n_jobs=pc['n_jobs'], verbose=20)(delayed(measure_file)(measurer_params, triplet) for triplet in processing_triplets)
     [measurer._load_n_process(*i) for i in tqdm(processing_triplets)]
