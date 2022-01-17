@@ -78,6 +78,21 @@ def color_average(markup, volume):
 def color_std(markup, volume):
     """Calculates variance of values inside segmented organ"""
     return volume[markup].std()
+    
+@organ_measure
+def color_median(markup, volume):
+    """Calculates median of values inside segmented organ"""
+    return np.median(volume[markup])
+
+@organ_measure
+def color_perc-99(markup, volume):
+    """Calculates 99th percentile of values inside segmented organ"""
+    return np.percentile(volume[markup], 99)
+
+@organ_measure
+def color_perc-1(markup, volume):
+    """Calculates 1st percentile of values inside segmented organ"""
+    return np.percentile(volume[markup], 1)    
 
 @organ_measure
 @axial_apply
