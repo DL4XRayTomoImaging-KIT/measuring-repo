@@ -5,6 +5,9 @@ from skimage.measure import label
 from .separator import get_centers_probabilistic, get_centers_statistical
 from itertools import combinations
 from .errors import MeasurementError
+from scipy.spatial import ConvexHull
+from einops import rearrange
+import miniball
 
 def recurrent_cleaner(s):
     if isinstance(s, list):
@@ -85,12 +88,12 @@ def color_median(markup, volume):
     return np.median(volume[markup])
 
 @organ_measure
-def color_perc-99(markup, volume):
+def color_perc_99(markup, volume):
     """Calculates 99th percentile of values inside segmented organ"""
     return np.percentile(volume[markup], 99)
 
 @organ_measure
-def color_perc-1(markup, volume):
+def color_perc_1(markup, volume):
     """Calculates 1st percentile of values inside segmented organ"""
     return np.percentile(volume[markup], 1)    
 
@@ -136,6 +139,29 @@ def eccentricity_equatorial(markup, volume):
     """Calculates average equatorial eccentricity of the circumscribed ellipsoid of organ"""
     r1, r2, r3 = get_bootstrapped_radii(markup)
     return (r3 - r2) / (r3 + r2)
+
+def tetrahedron_volume(a, b, c, d):
+    return np.abs(np.einsum('ij,ij->i', a-d, np.cross(b-d, c-d))) / 6
+    
+@organ_measure
+def convex_volume(markup, volume):
+    """Calculates volume of the convex hull enclosing the segmented organ"""
+    mp = np.moveaxis(np.stack(np.where(markup)), 0, 1) # marked points
+    ch = ConvexHull(mp)
+
+    simplices = np.column_stack((np.repeat(ch.vertices[0], ch.nsimplex), ch.simplices))
+    tets = ch.points[simplices]
+    return np.sum(tetrahedron_volume(tets[:, 0], tets[:, 1], tets[:, 2], tets[:, 3]))
+
+@organ_measure
+def radius_minimal_sphere(markup, volume):
+    """Calculates radius of the minimal sphere which contains all points of the label"""
+    mp = np.moveaxis(np.stack(np.where(markup)), 0, 1) # marked points
+    ch = ConvexHull(mp)
+
+    vertices = ch.points[ch.vertices]
+    C,r2 = miniball.get_bounding_ball(vertices)
+    return r2**0.5
 
 def distance_between_centers(markup, volume, separator):
     """Calculates distance between two pair organs"""
