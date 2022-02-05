@@ -5,9 +5,11 @@ from skimage.measure import label
 from .separator import get_centers_probabilistic, get_centers_statistical
 from itertools import combinations
 from .errors import MeasurementError
-from scipy.spatial import ConvexHull
+from scipy.spatial import ConvexHull, Voronoi
+from scipy.spatial.distance import cdist
 from einops import rearrange
 from skimage.morphology import ball, binary_dilation, binary_erosion, remove_small_holes
+from scipy.ndimage import binary_fill_holes
 import miniball
 
 def recurrent_cleaner(s):
@@ -73,7 +75,7 @@ def organ_metric(markup, volume, metric, modifier=None):
     elif modifier == 'erosion':
         markup = binary_erosion(markup, ball(radius=10, dtype=bool))
     elif modifier == 'filled':
-        markup = remove_small_holes(markup)
+        markup = binary_fill_holes(markup)
 
     if metric == 'volume':
         measurement = markup.sum()
@@ -232,7 +234,7 @@ def tetrahedron_volume(a, b, c, d):
 @organ_measure
 def convex_volume(markup, volume):
     """Calculates volume of the convex hull enclosing the segmented organ"""
-    mp = np.moveaxis(np.stack(np.where(markup)), 0, 1) # marked points
+    mp = np.dstack(np.where(markup))[0] # marked points
     ch = ConvexHull(mp)
 
     simplices = np.column_stack((np.repeat(ch.vertices[0], ch.nsimplex), ch.simplices))
@@ -241,13 +243,31 @@ def convex_volume(markup, volume):
 
 @organ_measure
 def radius_minimal_sphere(markup, volume):
-    """Calculates radius of the minimal sphere which contains all points of the label"""
-    mp = np.moveaxis(np.stack(np.where(markup)), 0, 1) # marked points
+    """Calculates radius of the minimal sphere which contains the convex hull surrounding the label"""
+    mp = np.dstack(np.where(markup))[0] # marked points
     ch = ConvexHull(mp)
+    hp = ch.points[ch.vertices]  # hull vertice coordinates
 
-    vertices = ch.points[ch.vertices]
-    C,r2 = miniball.get_bounding_ball(vertices)
+    C,r2 = miniball.get_bounding_ball(hp)
     return r2**0.5
+
+@organ_measure
+def radius_maximal_sphere(markup, volume):
+  """Calculates radius of the maximal sphere enclosed within the convex hull surrounding the label"""
+  mp = np.dstack(np.where(markup))[0]
+  ch = ConvexHull(mp)
+  hp = ch.points[ch.vertices]  # hull vertice coordinates
+  vor = Voronoi(hp)
+  vertices = vor.vertices
+
+  # find vertex with the largest clearance radius (distance to its defining points)
+  radius = 0
+  for vertex in vertices:
+    distances = cdist(hp, np.expand_dims(vertex,0))
+    min_distance = np.min(distances)
+    if min_distance > radius:
+      radius,center = min_distance, vertex
+  return radius
 
 def distance_between_centers(markup, volume, separator):
     """Calculates distance between two pair organs"""
