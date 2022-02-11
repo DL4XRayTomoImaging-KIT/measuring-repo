@@ -10,6 +10,7 @@ from scipy.spatial.distance import cdist
 from einops import rearrange
 from skimage.morphology import ball, binary_dilation, binary_erosion, remove_small_holes
 from scipy.ndimage import binary_fill_holes
+from shapely.geometry import Polygon, Point, MultiPoint
 import miniball
 
 def recurrent_cleaner(s):
@@ -257,16 +258,19 @@ def radius_maximal_sphere(markup, volume):
   mp = np.dstack(np.where(markup))[0]
   ch = ConvexHull(mp)
   hp = ch.points[ch.vertices]  # hull vertice coordinates
-  vor = Voronoi(hp)
-  vertices = vor.vertices
+  hp = Polygon(hp)  # convert polygon vertices to shapely polygon
 
-  # find vertex with the largest clearance radius (distance to its defining points)
+  vor = Voronoi(hp.exterior.coords)
+  vertices = vor.vertices
+  vertices = MultiPoint(vertices)  # convert voronoi vertices to shapely multipoint
+
+  # find vertex with the largest clearance radius (distance to its defining polygon)
   radius = 0
   for vertex in vertices:
-    distances = cdist(hp, np.expand_dims(vertex,0))
-    min_distance = np.min(distances)
-    if min_distance > radius:
-      radius,center = min_distance, vertex
+    if hp.contains(vertex):
+      min_distance = hp.exterior.distance(vertex)
+      if min_distance > radius:
+        radius,center = min_distance, np.array(vertex.coords)[0]
   return radius
 
 def distance_between_centers(markup, volume, separator):
