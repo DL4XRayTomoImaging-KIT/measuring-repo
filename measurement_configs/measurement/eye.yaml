@@ -22,8 +22,23 @@ measures:
       measures:
           - function: volume
           - function: surface_area
-          - function: color_average
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_mean_eroded
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_median_eroded
           - function: color_std
+          - function: color_std_dilated
+          - function: color_std_eroded
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_1_eroded
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: color_perc_99_eroded
+          - function: convex_volume
+          - function: radius_minimal_sphere
           - function: eccentricity_meridional
           - function: distance_between_centers
     - id: 3
@@ -32,10 +47,25 @@ measures:
       measures:
           - function: volume
           - function: surface_area
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_mean_eroded
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_median_eroded
+          - function: color_std
+          - function: color_std_dilated
+          - function: color_std_eroded
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_1_eroded
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: color_perc_99_eroded
+          - function: convex_volume
+          - function: radius_minimal_sphere
           - function: thickness_axial
           - function: radius_axial
-          - function: color_average
-          - function: color_std
           - function: distance_between_centers
     - id: 4
       name: muscles 
@@ -43,8 +73,23 @@ measures:
       measures:
           - function: volume
           - function: surface_area
-          - function: color_average
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_mean_eroded
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_median_eroded
           - function: color_std
+          - function: color_std_dilated
+          - function: color_std_eroded
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_1_eroded
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: color_perc_99_eroded
+          - function: convex_volume
+          - function: radius_minimal_sphere
           - function: eccentricity_meridional
           - function: distance_between_centers
     - id: 5
@@ -52,15 +97,45 @@ measures:
       measures:
           - function: volume
           - function: surface_area
-          - function: color_average
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_mean_eroded
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_median_eroded
           - function: color_std
+          - function: color_std_dilated
+          - function: color_std_eroded
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_1_eroded
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: color_perc_99_eroded
+          - function: convex_volume
+          - function: radius_minimal_sphere
     - id: 6
       name: retina
       center: lens
       measures:
           - function: volume
           - function: surface_area
-          - function: eccentricity_meridional
-          - function: color_average
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_mean_eroded
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_median_eroded
           - function: color_std
+          - function: color_std_dilated
+          - function: color_std_eroded
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_1_eroded
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: color_perc_99_eroded
+          - function: convex_volume
+          - function: radius_minimal_sphere
+          - function: eccentricity_meridional
           - function: distance_between_centers

@@ -25,8 +25,23 @@ measures:
       measures:
           - function: volume
           - function: surface_area
+<<<<<<< HEAD
           - function: color_average
           - function: color_std
+=======
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_std
+          - function: color_std_dilated
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: convex_volume
+          - function: radius_minimal_sphere
+>>>>>>> 0fd0313 (updated measurement configs)
           - function: eccentricity_meridional
           - function: eccentricity_equatorial
     - id: 2
@@ -35,8 +50,28 @@ measures:
       measures:
           - function: volume
           - function: surface_area
+<<<<<<< HEAD
           - function: color_average
           - function: color_std
+=======
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_mean_eroded
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_median_eroded
+          - function: color_std
+          - function: color_std_dilated
+          - function: color_std_eroded
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_1_eroded
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: color_perc_99_eroded
+          - function: convex_volume
+          - function: radius_minimal_sphere
+>>>>>>> 0fd0313 (updated measurement configs)
           - function: eccentricity_meridional
           - function: eccentricity_equatorial
           - function: distance_between_centers
@@ -45,8 +80,28 @@ measures:
       measures:
           - function: volume
           - function: surface_area
+<<<<<<< HEAD
           - function: color_average
           - function: color_std
+=======
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_mean_eroded
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_median_eroded
+          - function: color_std
+          - function: color_std_dilated
+          - function: color_std_eroded
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_1_eroded
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: color_perc_99_eroded
+          - function: convex_volume
+          - function: radius_minimal_sphere
+>>>>>>> 0fd0313 (updated measurement configs)
           - function: eccentricity_meridional
           - function: eccentricity_equatorial
     - id: 4
@@ -54,8 +109,28 @@ measures:
       measures:
           - function: volume
           - function: surface_area
+<<<<<<< HEAD
           - function: color_average
           - function: color_std
+=======
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_mean_eroded
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_median_eroded
+          - function: color_std
+          - function: color_std_dilated
+          - function: color_std_eroded
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_1_eroded
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: color_perc_99_eroded
+          - function: convex_volume
+          - function: radius_minimal_sphere
+>>>>>>> 0fd0313 (updated measurement configs)
           - function: eccentricity_meridional
           - function: eccentricity_equatorial
     - id: 5
@@ -63,8 +138,28 @@ measures:
       measures:
           - function: volume
           - function: surface_area
+<<<<<<< HEAD
           - function: color_average
           - function: color_std
+=======
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_mean_eroded
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_median_eroded
+          - function: color_std
+          - function: color_std_dilated
+          - function: color_std_eroded
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_1_eroded
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: color_perc_99_eroded
+          - function: convex_volume
+          - function: radius_minimal_sphere
+>>>>>>> 0fd0313 (updated measurement configs)
           - function: eccentricity_meridional
           - function: eccentricity_equatorial
     - id: 6
@@ -72,8 +167,28 @@ measures:
       measures:
           - function: volume
           - function: surface_area
+<<<<<<< HEAD
           - function: color_average
           - function: color_std
+=======
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_mean_eroded
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_median_eroded
+          - function: color_std
+          - function: color_std_dilated
+          - function: color_std_eroded
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_1_eroded
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: color_perc_99_eroded
+          - function: convex_volume
+          - function: radius_minimal_sphere
+>>>>>>> 0fd0313 (updated measurement configs)
           - function: eccentricity_meridional
           - function: eccentricity_equatorial
     - id: 7
@@ -81,20 +196,65 @@ measures:
       measures:
           - function: volume
           - function: surface_area
+<<<<<<< HEAD
           - function: color_average
           - function: color_std
+=======
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_std
+          - function: color_std_dilated
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: convex_volume
+          - function: radius_minimal_sphere
+>>>>>>> 0fd0313 (updated measurement configs)
             
     - id: 8
       name: hypophysis
       measures:
           - function: volume
           - function: surface_area
+<<<<<<< HEAD
           - function: color_average
           - function: color_std
+=======
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_std
+          - function: color_std_dilated
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: convex_volume
+          - function: radius_minimal_sphere
+>>>>>>> 0fd0313 (updated measurement configs)
     - id: 9
       name: torus_longuthing
       measures:
           - function: volume
           - function: surface_area
+<<<<<<< HEAD
           - function: color_average
           - function: color_std
+=======
+          - function: color_mean
+          - function: color_mean_dilated
+          - function: color_median
+          - function: color_median_dilated
+          - function: color_std
+          - function: color_std_dilated
+          - function: color_perc_1
+          - function: color_perc_1_dilated
+          - function: color_perc_99
+          - function: color_perc_99_dilated
+          - function: convex_volume
+          - function: radius_minimal_sphere
+>>>>>>> 0fd0313 (updated measurement configs)
