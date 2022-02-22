@@ -75,6 +75,8 @@ def organ_metric(markup, volume, metric, modifier=None):
         markup = dilated_markup & ~markup
     elif modifier == 'erosion':
         markup = binary_erosion(markup, ball(radius=10, dtype=bool))
+        if not markup.any():  # completely eroded
+          return 0
     elif modifier == 'filled':
         markup = binary_fill_holes(markup)
 
@@ -157,21 +159,6 @@ def color_std_eroded(markup, volume):
     return organ_metric(markup, volume, 'std', 'erosion')
 
 @organ_measure
-def color_perc_99(markup, volume):
-    """Calculates 99th percentile of values inside segmented organ"""
-    return organ_metric(markup, volume, 'perc_99')
-
-@organ_measure
-def color_perc_99_dilated(markup, volume):
-    """99th percentile after dilation by 10 pixels"""
-    return organ_metric(markup, volume, 'perc_99', 'dilation')
-
-@organ_measure
-def color_perc_99_eroded(markup, volume):
-    """99th percentile after erosion by 10 pixels"""
-    return organ_metric(markup, volume, 'perc_99', 'erosion')
-
-@organ_measure
 def color_perc_1(markup, volume):
     """Calculates 1st percentile of values inside segmented organ"""
     return organ_metric(markup, volume, 'perc_1')
@@ -185,6 +172,21 @@ def color_perc_1_dilated(markup, volume):
 def color_perc_1_eroded(markup, volume):
     """1st percentile after erosion by 10 pixels"""
     return organ_metric(markup, volume, 'perc_1', 'erosion')
+
+@organ_measure
+def color_perc_99(markup, volume):
+    """Calculates 99th percentile of values inside segmented organ"""
+    return organ_metric(markup, volume, 'perc_99')
+
+@organ_measure
+def color_perc_99_dilated(markup, volume):
+    """99th percentile after dilation by 10 pixels"""
+    return organ_metric(markup, volume, 'perc_99', 'dilation')
+
+@organ_measure
+def color_perc_99_eroded(markup, volume):
+    """99th percentile after erosion by 10 pixels"""
+    return organ_metric(markup, volume, 'perc_99', 'erosion')
 
 @organ_measure
 @axial_apply
