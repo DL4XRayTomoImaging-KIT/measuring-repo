@@ -206,29 +206,26 @@ def radius_axial(markup, line, center):
     r2 = touched[-1] - center
     return (r1, r2)
 
-def get_bootstrapped_radii(markup, samples=10, size=5000):
-    point_cloud = np.stack(np.where(markup), 1)
-
-    all_radii = []
-    for i in range(samples):
-        eltool = EllipsoidTool()
-        ell = eltool.getMinVolEllipse(point_cloud[np.random.choice(len(point_cloud), size, replace=False)])
-        all_radii.append(np.sort(ell[1]))
-    all_radii = np.stack(all_radii, 0)
-
-    median_radii = np.median(all_radii, 0)
-    return median_radii
+def get_radii(markup):
+    mp = np.dstack(np.where(markup))[0] # marked points
+    ch = ConvexHull(mp)
+    hp = ch.points[ch.vertices]  # hull vertice coordinates
+  
+    eltool = EllipsoidTool()
+    ell = eltool.getMinVolEllipse(hp)
+    radii = np.sort(ell[1])
+    return radii
 
 @organ_measure
 def eccentricity_meridional(markup, volume):
-    """Calculates average meridional eccentricity of the circumscribed ellipsoid of organ"""
-    r1, r2, r3 = get_bootstrapped_radii(markup)
+    """Calculates meridional eccentricity of the circumscribed ellipsoid of organ"""
+    r1, r2, r3 = get_radii(markup)
     return (r3 - r1) / (r3 + r1)
 
 @organ_measure
 def eccentricity_equatorial(markup, volume):
-    """Calculates average equatorial eccentricity of the circumscribed ellipsoid of organ"""
-    r1, r2, r3 = get_bootstrapped_radii(markup)
+    """Calculates equatorial eccentricity of the circumscribed ellipsoid of organ"""
+    r1, r2, r3 = get_radii(markup)
     return (r3 - r2) / (r3 + r2)
 
 def tetrahedron_volume(a, b, c, d):
