@@ -9,22 +9,7 @@ measures:
       measures:
           - function: volume
           - function: surface_area
-          - function: color_mean
-          - function: color_mean_dilated
-          - function: color_mean_eroded
-          - function: color_median
-          - function: color_median_dilated
-          - function: color_median_eroded
+          - function: color_average
           - function: color_std
-          - function: color_std_dilated
-          - function: color_std_eroded
-          - function: color_perc_1
-          - function: color_perc_1_dilated
-          - function: color_perc_1_eroded
-          - function: color_perc_99
-          - function: color_perc_99_dilated
-          - function: color_perc_99_eroded
-          - function: convex_volume
-          - function: radius_minimal_sphere
           - function: eccentricity_meridional
           - function: eccentricity_equatorial
