@@ -7,6 +7,7 @@ from itertools import combinations
 from .errors import MeasurementError
 from scipy.spatial import ConvexHull, Voronoi
 from scipy.spatial.distance import cdist
+from scipy.stats import skew, kurtosis
 from einops import rearrange
 from skimage.morphology import ball, binary_dilation, binary_erosion, remove_small_holes
 from scipy.ndimage import binary_fill_holes
@@ -94,6 +95,10 @@ def organ_metric(markup, volume, metric, modifier=None):
         measurement = np.percentile(volume[markup], 1)
     elif metric == 'perc_99':
         measurement = np.percentile(volume[markup], 99)
+    elif metric == 'kurtosis':
+        measurement = kurtosis(volume[markup], axis=None)
+    elif metric == 'skew':
+        measurement = skew(volume[markup], axis=None)
 
     return measurement
 
@@ -147,6 +152,21 @@ def color_median_eroded(markup, volume):
 def color_std(markup, volume):
     """Calculates standard deviation of values inside segmented organ"""
     return organ_metric(markup, volume, 'std')
+
+@organ_measure
+def color_std(markup, volume):
+    """Calculates standard deviation of values inside segmented organ"""
+    return organ_metric(markup, volume, 'std')
+
+@organ_measure
+def color_kurtosis(markup, volume):
+    """Calculates the kurtosis of values inside segmented organ. For normal distribution it equals 0.0 (Fisher)"""
+    return organ_metric(markup, volume, 'kurtosis')
+
+@organ_measure
+def color_skew(markup, volume):
+    """Calculates the skewness of values inside segmented organ. For normal distribution it equals 0.0"""
+    return organ_metric(markup, volume, 'skew')
 
 @organ_measure
 def color_std_dilated(markup, volume):
