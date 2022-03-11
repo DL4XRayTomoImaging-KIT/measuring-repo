@@ -8,6 +8,7 @@ from .errors import MeasurementError
 from scipy.spatial import ConvexHull, Voronoi
 from scipy.spatial.distance import cdist
 from scipy.stats import skew, kurtosis
+import SimpleITK as sitk
 from einops import rearrange
 from skimage.morphology import ball, binary_dilation, binary_erosion, remove_small_holes
 from scipy.ndimage import binary_fill_holes
@@ -306,3 +307,71 @@ def distance_between_centers(markup, volume, separator):
     for a,b in combinations(centers, 2):
         d.append(((a-b)**2).sum()**0.5)
     return d
+
+
+@organ_measure
+def elongation(markup, volume):
+    """Calculates elongation of a segmented organ"""
+    markup = markup.astype(int)
+    itk_label = sitk.GetImageFromArray(markup)
+    shape_stats = sitk.LabelShapeStatisticsImageFilter()
+    shape_stats.Execute(itk_label)
+
+    return shape_stats.GetElongation(1)
+
+
+@organ_measure
+def flatness(markup, volume):
+    """Calculates flatness of a segmented organ"""
+    markup = markup.astype(int)
+    itk_label = sitk.GetImageFromArray(markup)
+    shape_stats = sitk.LabelShapeStatisticsImageFilter()
+    shape_stats.Execute(itk_label)
+
+    return shape_stats.GetFlatness(1)
+
+
+@organ_measure
+def sphericity(markup, volume):
+    """Calculates sphericity of a segmented organ"""
+    markup = markup.astype(int)
+    itk_label = sitk.GetImageFromArray(markup)
+    shape_stats = sitk.LabelShapeStatisticsImageFilter()
+    shape_stats.Execute(itk_label)
+
+    return shape_stats.GetRoundness(1)
+
+@organ_measure
+def oriented_bbox_min_size(markup, volume):
+    """Calculates minimal size of the oriented bounding box of a segmented organ"""
+    markup = markup.astype(int)
+    itk_label = sitk.GetImageFromArray(markup)
+    shape_stats = sitk.LabelShapeStatisticsImageFilter()
+    shape_stats.ComputeOrientedBoundingBoxOn()
+    shape_stats.Execute(itk_label)
+
+    return shape_stats.GetOrientedBoundingBoxSize(1)[0]
+
+@organ_measure
+def oriented_bbox_min_size(markup, volume):
+    """Calculates maximal size of the oriented bounding box of a segmented organ"""
+    markup = markup.astype(int)
+    itk_label = sitk.GetImageFromArray(markup)
+    shape_stats = sitk.LabelShapeStatisticsImageFilter()
+    shape_stats.ComputeOrientedBoundingBoxOn()
+    shape_stats.Execute(itk_label)
+
+    return shape_stats.GetOrientedBoundingBoxSize(1)[2]
+
+@organ_measure
+def oriented_bbox_min_size(markup, volume):
+    """Calculates Feret diameter of a segmented organ"""
+    markup = markup.astype(int)
+    itk_label = sitk.GetImageFromArray(markup)
+    shape_stats = sitk.LabelShapeStatisticsImageFilter()
+    shape_stats.ComputeFeretDiameterOn()
+    shape_stats.Execute(itk_label)
+
+    return shape_stats.GetFeretDiameter(1)
+
+
