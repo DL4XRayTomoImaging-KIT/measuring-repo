@@ -83,6 +83,8 @@ class TinyDBInterface:
                 selection = db.search(Query().fragment(request))
             else:
                 selection = db.all()
+        if not fields:
+          fields = {k for record in selection for k in record.keys()}        
             
         result = defaultdict(list)
         for record in selection:
@@ -96,6 +98,9 @@ class TinyDBInterface:
                         curview = None
                         break
                 result[fieldname].append(curview)
+        
+        result = [dict(zip(result,t)) for t in zip(*result.values())]  # result as list of dicts instead of dict of lists
+        result = [dict_to_planar(record) for record in result]
         return result
 
 def get_database_interface(address):
@@ -296,7 +301,7 @@ def measure(cfg : DictConfig) -> None:
 
         processing_triplets.append((mask_addr, volume_addr, sample_id))
     
-    Parallel(n_jobs=pc['n_jobs'], verbose=20)(delayed(measure_file)(measurer_params, triplet) for triplet in processing_triplets)
+    Parallel(n_jobs=pc['n_jobs'], verbose=20)(delayed(measure_file)(measurer_params, triplet) for triplet in tqdm(processing_triplets))
     # [measurer._load_n_process(*i) for i in tqdm(processing_triplets)]
 
 
