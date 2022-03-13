@@ -10,8 +10,7 @@ from scipy.spatial.distance import cdist
 from scipy.stats import skew, kurtosis
 import SimpleITK as sitk
 from einops import rearrange
-from skimage.morphology import ball, binary_dilation, binary_erosion, remove_small_holes
-from scipy.ndimage import binary_fill_holes
+from scipy.ndimage import binary_fill_holes, binary_dilation, binary_erosion, generate_binary_structure
 from shapely.geometry import Polygon, Point, MultiPoint
 import miniball
 
@@ -72,11 +71,12 @@ def organ_metric(markup, volume, metric, modifier=None):
     if modifier is not None and modifier not in modifiers:
         raise ValueError(f'invalid modifier, must be in {modifiers}')
 
+    diamond = generate_binary_structure(rank=3, connectivity=1)
     if modifier == 'dilation':
-        dilated_markup = binary_dilation(markup, ball(radius=10, dtype=bool))
+        dilated_markup = binary_dilation(markup, diamond, iterations=10)
         markup = dilated_markup & ~markup
     elif modifier == 'erosion':
-        markup = binary_erosion(markup, ball(radius=10, dtype=bool))
+        markup = binary_erosion(markup, diamond, iterations=10)
         if not markup.any():  # completely eroded
           return 0
     elif modifier == 'filled':
