@@ -1,0 +1,4 @@
+# @package _group_
+db: /home/ws/er5241/Repos/measuring-repo/artifacts/debug_uncroppedb.json
+#readonly: False
+n_jobs: 3

@@ -1,0 +1,5 @@
+# @package _group_
+directories: '/mnt/HD-LSDF/Medaka/201905_beamtime_medaka_stained/Medaka_*_*/' 
+volume_name: 'scaled_0.5_8bit_slices.tif'
+mask_name: 'liver_scaled_0.5_8bit_slices.tif'
+id_regexp: '/Medaka_(.*?)_.*/'
