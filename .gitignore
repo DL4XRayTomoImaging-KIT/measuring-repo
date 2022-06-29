@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 data/1099.tif
 data/1099_brain.tif
+data/1099_brain_clean.tif
+testing/image.tif
