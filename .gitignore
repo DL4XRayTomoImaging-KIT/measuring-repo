@@ -131,3 +131,7 @@ data/1099.tif
 data/1099_brain.tif
 data/1099_brain_clean.tif
 testing/image.tif
+data/1099_brain_clean_scale.tif
+data/1099_scale.tif
+testing/res_img.tif
+testing/res_label.tif
