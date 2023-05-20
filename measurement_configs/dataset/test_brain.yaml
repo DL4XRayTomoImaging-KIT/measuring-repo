@@ -1,0 +1,5 @@
+# @package _group_
+directories: '${hydra:runtime.cwd}/../tmp_data/Medaka_*/'
+volume_name: 'scaled_0.5_uint8_slices.tif'
+mask_name: 'postprocessed_segmented_scaled_0.5_uint8_slices.tif'
+id_regexp: '/Medaka_(.*?)/'

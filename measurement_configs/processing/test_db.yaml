@@ -1,0 +1,4 @@
+# @package _group_
+db: ${hydra:runtime.cwd}/../tmp_data/debug.json
+#readonly: False
+n_jobs: 3
